@@ -146,10 +146,10 @@ def main(
                 if isinstance(backbone_out, dict):
                     image_embed: torch.Tensor = backbone_out["vision_features"]
                     # third pos is discarded for compatibility with 2.0
-                    if size in [CheckpointSizes.TINY, CheckpointSizes.SMALL]:
-                        high_res_feats = None
-                    else:
-                        high_res_feats = [x for x in backbone_out["backbone_fpn"][:2]]
+                    #if size in [CheckpointSizes.TINY, CheckpointSizes.SMALL]:
+                    high_res_feats = None
+                    # else:
+                    #     high_res_feats = [x for x in backbone_out["backbone_fpn"][:2]]
                 else:
                     image_embed: torch.Tensor = backbone_out
                     high_res_feats = None
