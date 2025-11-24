@@ -124,8 +124,9 @@ def main(
 
     print(f"Starting training on {device}...")
 
-    if size in [CheckpointSizes.TINY, CheckpointSizes.SMALL]:
-        sam2_model.sam_mask_decoder.use_high_res_features = False
+    # if size in [CheckpointSizes.TINY, CheckpointSizes.SMALL]:
+    #     sam2_model.sam_mask_decoder.use_high_res_features = False
+    sam2_model.sam_mask_decoder.use_high_res_features = False
 
     sam2_model.train()
 
