@@ -3,24 +3,43 @@ import sys
 import sam2
 import typer
 import torch
-
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from typing import Any, DefaultDict
 from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
 from hydra.core.global_hydra import GlobalHydra
 from hydra import initialize_config_dir
 from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
-
 from urllib.request import urlretrieve
-from typing import Annotated
+from typing import Annotated, DefaultDict
 
 from checkpoints import CheckpointSizes, get_checkpoint_config
 from dataset import ArcadeDataset, get_dataset_paths
 
 
+class TBackboneOut(DefaultDict):
+    """
+    Represents image encoder embedding in Hiera format.
+
+    Consists of 3 objects:
+    Vision features: 64x64 256-channel embedding [2, 256, 64, 64]
+    Vision positional embedding: pyramid [2, 256, 256, 256]->[2, 256, 128, 128]->[2, 256, 64, 64]
+    Backbone features: pyramid [2, 256, 256, 256]->[2, 256, 128, 128]->[2, 256, 64, 64]
+    """
+    vision_features: torch.Tensor
+    vision_pos_enc: list[torch.Tensor]
+    backbone_fpn: list[torch.Tensor]
+
+
 def main(
     dataset_root: Annotated[str, typer.Option(prompt="Path to dataset root")],
     size: Annotated[CheckpointSizes, typer.Option(prompt="Model size")],
+    batch_size: Annotated[int, typer.Option(prompt="Batch size")] = 2,
+    learning_rate: Annotated[float, typer.Option(prompt="Learning rate")] = 1e-4,
+    epochs: Annotated[int, typer.Option(prompt="Number of epochs")] = 10,
 ):
     try:
         ann_path, img_path = get_dataset_paths(dataset_root)
@@ -78,6 +97,25 @@ def main(
         if os.path.exists(config_dir):
             print(f"Available configs: {os.listdir(config_dir)}")
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    sam2_model.to(device)
+
+    for name, param in sam2_model.named_parameters():
+        if "image_encoder" in name:
+            # Freeze the image encoder
+            param.requires_grad = False
+        else:
+            # Train the prompt encoder and mask decoder
+            param.requires_grad = True
+
+    trainable_params = [p for p in sam2_model.parameters() if p.requires_grad]
+    optimizer = optim.AdamW(trainable_params, lr=learning_rate, weight_decay=1e-4)
+
+    loss_fn = nn.BCEWithLogitsLoss()
+
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+    print(f"Starting training on {device}...")
 
 if __name__ == "__main__":
     typer.run(main)
