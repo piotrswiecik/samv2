@@ -9,7 +9,7 @@ uv run datapoint.py /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax
 Run training
 
 ```shell
-uv run train.py /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax
+uv run train.py --dataset-root /Users/piotrswiecik/dev/ives/coronary/datasets/arcade
 ```
 
 

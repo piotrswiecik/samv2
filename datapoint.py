@@ -26,20 +26,21 @@ def main(dataset_root: Annotated[str, typer.Option(prompt="Path to dataset root"
         sample = dataset[sample]
 
         img_vis = sample["image"].permute(1, 2, 0).numpy().astype(np.uint8)
-        mask_vis = sample["mask"].squeeze().numpy() # [1024, 1024]
+        mask_vis = sample["mask"].squeeze().numpy()  # [1024, 1024]
         point = sample["point"][0]
 
         plt.figure(figsize=(10, 5))
         plt.subplot(1, 2, 1)
         plt.imshow(img_vis)
-        plt.scatter([point[0]], [point[1]], c='r', s=50, label='Prompt')
+        plt.scatter([point[0]], [point[1]], c="r", s=50, label="Prompt")
         plt.title("Resized Image (1024x1024)")
 
         plt.subplot(1, 2, 2)
-        plt.imshow(mask_vis, cmap='gray')
-        plt.scatter([point[0]], [point[1]], c='r', s=50)
+        plt.imshow(mask_vis, cmap="gray")
+        plt.scatter([point[0]], [point[1]], c="r", s=50)
         plt.title("Resized Mask (1024x1024)")
         plt.show()
+
 
 if __name__ == "__main__":
     typer.run(main)

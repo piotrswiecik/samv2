@@ -8,6 +8,8 @@ dependencies = [
     "matplotlib>=3.10.7",
     "opencv-python>=4.12.0.88",
     "sam2>=1.1.0",
+    "torch>=2.9.1",
+    "torchvision>=0.24.1",
     "typer>=0.20.0",
 ]
 

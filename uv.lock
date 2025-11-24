@@ -874,6 +874,8 @@ dependencies = [
     { name = "matplotlib" },
     { name = "opencv-python" },
     { name = "sam2" },
+    { name = "torch" },
+    { name = "torchvision" },
     { name = "typer" },
 ]
 
@@ -887,6 +889,8 @@ requires-dist = [
     { name = "matplotlib", specifier = ">=3.10.7" },
     { name = "opencv-python", specifier = ">=4.12.0.88" },
     { name = "sam2", specifier = ">=1.1.0" },
+    { name = "torch", specifier = ">=2.9.1" },
+    { name = "torchvision", specifier = ">=0.24.1" },
     { name = "typer", specifier = ">=0.20.0" },
 ]
 

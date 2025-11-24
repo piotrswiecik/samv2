@@ -13,19 +13,16 @@ def get_dataset_paths(root: str) -> tuple[str, str]:
         raise ValueError(f"Root ARCADE directory not found: {root}")
 
     # Find annotation file by convention
-    fpath = os.path.join(
-        root, "syntax", "train", "annotations", "train.json"
-    )
+    fpath = os.path.join(root, "syntax", "train", "annotations", "train.json")
     if not os.path.isfile(fpath):
         raise ValueError(f"File not found: {fpath}")
 
     # Find train image dir by convention
     image_path = os.path.join(root, "syntax", "train", "images")
     if not os.path.isdir(image_path):
-        raise ValueError(f"Trainingg image directory not found: {image_path}")
-    
-    return fpath, image_path
+        raise ValueError(f"Training image directory not found: {image_path}")
 
+    return fpath, image_path
 
 
 class ArcadeDataset(Dataset):
