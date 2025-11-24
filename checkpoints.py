@@ -33,7 +33,7 @@ def get_checkpoint_config(size: CheckpointSizes) -> CheckpointConfig:
         "baseplus": CheckpointConfig(
             filename="sam2_hiera_baseplus.pt",
             url="https://dl.fbaipublicfiles.com/segment_anything_2/092824/sam2.1_hiera_base_plus.pt",
-            config_file="sam2.1/sam2.1_hiera_bplus+.yaml",
+            config_file="sam2.1/sam2.1_hiera_b+.yaml",
         ),
         "large": CheckpointConfig(
             filename="sam2_hiera_large.pt",
