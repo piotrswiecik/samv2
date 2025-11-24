@@ -32,6 +32,7 @@ class TBackboneOut(DefaultDict):
     Vision positional embedding: pyramid [2, 256, 256, 256]->[2, 256, 128, 128]->[2, 256, 64, 64]
     Backbone features: pyramid [2, 256, 256, 256]->[2, 256, 128, 128]->[2, 256, 64, 64]
     """
+
     vision_features: torch.Tensor
     vision_pos_enc: list[torch.Tensor]
     backbone_fpn: list[torch.Tensor]
@@ -86,9 +87,9 @@ def main(
 
     try:
         sam2_model = build_sam2(
-            config_file=checkpoint_config.config_file, 
-            ckpt_path=checkpoint_file, 
-            device=device
+            config_file=checkpoint_config.config_file,
+            ckpt_path=checkpoint_file,
+            device=device,
         )
         sam2_model.train()
         print("Model loaded successfully!")
@@ -132,10 +133,10 @@ def main(
         total_loss = 0
 
         for step, batch in enumerate(dataloader):
-            images = batch["image"].to(device) # [B, 3, 1024, 1024]
-            masks_gt = batch["mask"].to(device) # [B, 1, 1024, 1024]
-            points = batch["point"].to(device) # [B, 1, 2]
-            labels = batch["label"].to(device) # [B, 1]
+            images = batch["image"].to(device)  # [B, 3, 1024, 1024]
+            masks_gt = batch["mask"].to(device)  # [B, 1, 1024, 1024]
+            points = batch["point"].to(device)  # [B, 1, 2]
+            labels = batch["label"].to(device)  # [B, 1]
 
             optimizer.zero_grad()
 
@@ -152,16 +153,16 @@ def main(
                 else:
                     image_embed: torch.Tensor = backbone_out
                     high_res_feats = None
-            
-            sparse_emb: torch.Tensor # [2, 2, 256]
-            dense_emb: torch.Tensor # [2, 256, 64, 64]
+
+            sparse_emb: torch.Tensor  # [2, 2, 256]
+            dense_emb: torch.Tensor  # [2, 256, 64, 64]
             sparse_emb, dense_emb = sam2_model.sam_prompt_encoder(
                 points=(points, labels),
                 boxes=None,
                 masks=None,
             )
 
-            low_res_masks: torch.Tensor # [2, 1, 256, 256]
+            low_res_masks: torch.Tensor  # [2, 1, 256, 256]
             low_res_masks, _, _, _ = sam2_model.sam_mask_decoder(
                 image_embeddings=image_embed,
                 image_pe=sam2_model.sam_prompt_encoder.get_dense_pe(),
@@ -169,33 +170,30 @@ def main(
                 dense_prompt_embeddings=dense_emb,
                 multimask_output=False,
                 repeat_image=False,
-                high_res_features=high_res_feats
+                high_res_features=high_res_feats,
             )
 
-            upscaled_masks: torch.Tensor # [2, 1, 1024, 1024]
+            upscaled_masks: torch.Tensor  # [2, 1, 1024, 1024]
             upscaled_masks = torch.nn.functional.interpolate(
-                low_res_masks, 
-                size=(1024, 1024), 
-                mode="bilinear", 
-                align_corners=False
+                low_res_masks, size=(1024, 1024), mode="bilinear", align_corners=False
             )
 
-            loss: torch.Tensor = loss_fn(upscaled_masks, masks_gt) # scalar
+            loss: torch.Tensor = loss_fn(upscaled_masks, masks_gt)  # scalar
 
             loss.backward()
             optimizer.step()
-            
+
             total_loss += loss.item()
 
             if step % 5 == 0:
-                print(f"Epoch {epoch+1} | Step {step} | Loss: {loss.item():.4f}")
+                print(f"Epoch {epoch + 1} | Step {step} | Loss: {loss.item():.4f}")
 
-        print(f"--- End of Epoch {epoch+1} ---")
+        print(f"--- End of Epoch {epoch + 1} ---")
         if (epoch + 1) % SAVE_INTERVAL == 0:
-            save_path = os.path.join(trained_dir, f"sam2_arcade_ep{epoch+1}.torch")
+            save_path = os.path.join(trained_dir, f"sam2_arcade_ep{epoch + 1}.torch")
             torch.save(sam2_model.state_dict(), save_path)
             print(f"Model saved: {save_path}")
-    
+
 
 if __name__ == "__main__":
     typer.run(main)

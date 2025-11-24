@@ -12,6 +12,12 @@ Run training
 uv run train.py --dataset-root /Users/piotrswiecik/dev/ives/coronary/datasets/arcade --epochs=10
 ```
 
+Single point inference test
+
+```shell
+uv run predict_random.py --weights-path /Users/piotrswiecik/dev/ives/coronary/sam2/workdir/artifacts/trained_models/sam2_arcade_ep2.torch --dataset-root /Users/piotrswiecik/dev/ives/coronary/datasets/arcade
+```
+
 
 ## ARCADE annotation format
 
