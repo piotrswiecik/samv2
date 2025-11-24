@@ -170,7 +170,8 @@ def main(
                 dense_prompt_embeddings=dense_emb,
                 multimask_output=False,
                 repeat_image=False,
-                high_res_features=high_res_feats,
+                high_res_features=None,
+                # high_res_features=high_res_feats,
             )
 
             upscaled_masks: torch.Tensor  # [2, 1, 1024, 1024]
