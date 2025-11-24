@@ -20,6 +20,9 @@ from checkpoints import CheckpointSizes, get_checkpoint_config
 from dataset import ArcadeDataset, get_dataset_paths
 
 
+SAVE_INTERVAL = 2  # epochs
+
+
 class TBackboneOut(DefaultDict):
     """
     Represents image encoder embedding in Hiera format.
@@ -58,6 +61,9 @@ def main(
     checkpoint_config = get_checkpoint_config(size)
     os.makedirs(checkpoint_dir, exist_ok=True)
     checkpoint_file = os.path.join(checkpoint_dir, checkpoint_config.filename)
+
+    trained_dir = os.path.join(artifact_dir, "trained_models")
+    os.makedirs(trained_dir, exist_ok=True)
 
     if not os.path.isfile(checkpoint_file):
         typer.echo(f"Downloading checkpoint {checkpoint_config.url}...")
@@ -116,6 +122,80 @@ def main(
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     print(f"Starting training on {device}...")
+
+    if size in [CheckpointSizes.TINY, CheckpointSizes.SMALL]:
+        sam2_model.sam_mask_decoder.use_high_res_features = False
+
+    sam2_model.train()
+
+    for epoch in range(epochs):
+        total_loss = 0
+
+        for step, batch in enumerate(dataloader):
+            images = batch["image"].to(device) # [B, 3, 1024, 1024]
+            masks_gt = batch["mask"].to(device) # [B, 1, 1024, 1024]
+            points = batch["point"].to(device) # [B, 1, 2]
+            labels = batch["label"].to(device) # [B, 1]
+
+            optimizer.zero_grad()
+
+            with torch.no_grad():
+                backbone_out: TBackboneOut = sam2_model.image_encoder(images)
+
+                if isinstance(backbone_out, dict):
+                    image_embed: torch.Tensor = backbone_out["vision_features"]
+                    # third pos is discarded for compatibility with 2.0
+                    if size in [CheckpointSizes.TINY, CheckpointSizes.SMALL]:
+                        high_res_feats = None
+                    else:
+                        high_res_feats = [x for x in backbone_out["backbone_fpn"][:2]]
+                else:
+                    image_embed: torch.Tensor = backbone_out
+                    high_res_feats = None
+            
+            sparse_emb: torch.Tensor # [2, 2, 256]
+            dense_emb: torch.Tensor # [2, 256, 64, 64]
+            sparse_emb, dense_emb = sam2_model.sam_prompt_encoder(
+                points=(points, labels),
+                boxes=None,
+                masks=None,
+            )
+
+            low_res_masks: torch.Tensor # [2, 1, 256, 256]
+            low_res_masks, _, _, _ = sam2_model.sam_mask_decoder(
+                image_embeddings=image_embed,
+                image_pe=sam2_model.sam_prompt_encoder.get_dense_pe(),
+                sparse_prompt_embeddings=sparse_emb,
+                dense_prompt_embeddings=dense_emb,
+                multimask_output=False,
+                repeat_image=False,
+                high_res_features=high_res_feats
+            )
+
+            upscaled_masks: torch.Tensor # [2, 1, 1024, 1024]
+            upscaled_masks = torch.nn.functional.interpolate(
+                low_res_masks, 
+                size=(1024, 1024), 
+                mode="bilinear", 
+                align_corners=False
+            )
+
+            loss: torch.Tensor = loss_fn(upscaled_masks, masks_gt) # scalar
+
+            loss.backward()
+            optimizer.step()
+            
+            total_loss += loss.item()
+
+            if step % 5 == 0:
+                print(f"Epoch {epoch+1} | Step {step} | Loss: {loss.item():.4f}")
+
+        print(f"--- End of Epoch {epoch+1} ---")
+        if (epoch + 1) % SAVE_INTERVAL == 0:
+            save_path = os.path.join(trained_dir, f"sam2_arcade_ep{epoch+1}.torch")
+            torch.save(sam2_model.state_dict(), save_path)
+            print(f"Model saved: {save_path}")
+    
 
 if __name__ == "__main__":
     typer.run(main)
