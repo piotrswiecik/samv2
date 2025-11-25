@@ -14,7 +14,7 @@ from hydra import initialize_config_dir
 from sam2.build_sam import build_sam2
 from sam2.sam2_image_predictor import SAM2ImagePredictor
 from urllib.request import urlretrieve
-from typing import Annotated, DefaultDict
+from typing import Annotated, TypedDict
 
 from checkpoints import CheckpointSizes, get_checkpoint_config
 from dataset import ArcadeDataset, get_dataset_paths
@@ -23,19 +23,24 @@ from dataset import ArcadeDataset, get_dataset_paths
 SAVE_INTERVAL = 2  # epochs
 
 
-class TBackboneOut(DefaultDict):
+class TBackboneOut(TypedDict):
     """
-    Represents image encoder embedding in Hiera format.
-
-    Consists of 3 objects:
-    Vision features: 64x64 256-channel embedding [2, 256, 64, 64]
-    Vision positional embedding: pyramid [2, 256, 256, 256]->[2, 256, 128, 128]->[2, 256, 64, 64]
-    Backbone features: pyramid [2, 256, 256, 256]->[2, 256, 128, 128]->[2, 256, 64, 64]
+    Represents image encoder embedding in Hiera format as dictionary of 3 items: 
+    vision features, vision positional embedding, and backbone features.
     """
 
-    vision_features: torch.Tensor
-    vision_pos_enc: list[torch.Tensor]
-    backbone_fpn: list[torch.Tensor]
+    vision_features: Annotated[
+        torch.Tensor,
+        "Image embedding, 64x64 spatial size, 256 channels - [B, 256, 64, 64]"
+    ]
+    vision_pos_enc: Annotated[
+        list[torch.Tensor], 
+        "List of positional embeddings at different scales - [B, 256, 256, 256], [B, 256, 128, 128], [B, 256, 64, 64]"
+    ]
+    backbone_fpn: Annotated[
+        list[torch.Tensor],
+        "List of backbone features at different scales - [B, 256, 256, 256], [B, 256, 128, 128], [B, 256, 64, 64]"
+    ]
 
 
 def main(
