@@ -5,12 +5,17 @@ Other classes represent vessel crops extracted from ARCADE dataset annotations a
 """
 
 import os
+from typing_extensions import Annotated
 import cv2
 import json
 import numpy as np
 from collections import defaultdict
 from tqdm import tqdm
 import random
+
+import typer
+
+from dataset import get_dataset_paths
 
 TRAIN_JSON = "/Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax/train/annotations/train.json"
 TRAIN_IMAGES_DIR = (
@@ -188,6 +193,14 @@ def generate_classifier_dataset(json_path, image_dir, output_dir):
     print(f"Data stored in: {output_dir}")
 
 
+def main(
+        dataset_root: Annotated[str, typer.Option(prompt="Path to dataset root")],
+        out_dir: Annotated[str, typer.Option(prompt="Output directory for classifier data")],
+    ):
+    ann_path, img_path = get_dataset_paths(dataset_root)
+    generate_background_class(ann_path, img_path, out_dir)
+
+
 if __name__ == "__main__":
-    # generate_classifier_dataset(TRAIN_JSON, TRAIN_IMAGES_DIR, OUTPUT_DIR)
-    generate_background_class(TRAIN_JSON, TRAIN_IMAGES_DIR, OUTPUT_DIR)
+    typer.run(main)
+    

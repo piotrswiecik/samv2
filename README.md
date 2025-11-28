@@ -16,6 +16,10 @@ uv run train.py --dataset-root /home/ives/piotr/arcade --epochs=100
 Run training for ResNet
 
 ```shell
+# prepare classifier data
+uv run classifier_data.py --dataset-root=/Users/piotrswiecik/dev/ives/coronary/datasets/arcade --out-dir=/Users/piotrswiecik/dev/ives/coronary/sam2/workdir/arcade_classifier_data
+
+# run
 uv run resnet.py --dataset-root /Users/piotrswiecik/dev/ives/coronary/sam2/workdir/arcade_classifier_data --resnet-checkpoint-dir /Users/piotrswiecik/dev/ives/coronary/sam2/workdir/artifacts/resnet
 ```
 
