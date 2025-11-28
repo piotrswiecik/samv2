@@ -3,20 +3,28 @@
 Visualize training data points
 
 ```shell
-uv run datapoint.py /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/syntax
+uv run datapoint.py --dataset-root /Users/piotrswiecik/dev/ives/coronary/datasets/arcade/
 ```
 
-Run training
+Run training for SAM
 
 ```shell
 uv run train.py --dataset-root /Users/piotrswiecik/dev/ives/coronary/datasets/arcade --epochs=100
 uv run train.py --dataset-root /home/ives/piotr/arcade --epochs=100
 ```
 
+Run training for ResNet
+
+```shell
+uv run resnet.py --dataset-root /Users/piotrswiecik/dev/ives/coronary/sam2/workdir/arcade_classifier_data --resnet-checkpoint-dir /Users/piotrswiecik/dev/ives/coronary/sam2/workdir/artifacts/resnet
+```
+
 Single point inference test
 
 ```shell
-uv run predict_random.py --weights-path /Users/piotrswiecik/dev/ives/coronary/sam2/workdir/artifacts/trained_models/sam2_arcade_ep2.torch --dataset-root /Users/piotrswiecik/dev/ives/coronary/datasets/arcade
+uv run predict_random.py --weights-path /Users/piotrswiecik/dev/ives/coronary/sam2/workdir/artifacts/trained_models/large_v1/model.torch --dataset-root /Users/piotrswiecik/dev/ives/coronary/datasets/arcade
+
+uv run predict_file.py --weights-path /Users/piotrswiecik/dev/ives/coronary/sam2/workdir/artifacts/trained_models/large_v1/model.torch --file /Users/piotrswiecik/dev/ives/coronary/datasets/wum_v2/1_I0468412.VIM.DCM.21.png
 ```
 
 ## ARCADE annotation format

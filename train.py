@@ -25,21 +25,21 @@ SAVE_INTERVAL = 2  # epochs
 
 class TBackboneOut(TypedDict):
     """
-    Represents image encoder embedding in Hiera format as dictionary of 3 items: 
+    Represents image encoder embedding in Hiera format as dictionary of 3 items:
     vision features, vision positional embedding, and backbone features.
     """
 
     vision_features: Annotated[
         torch.Tensor,
-        "Image embedding, 64x64 spatial size, 256 channels - [B, 256, 64, 64]"
+        "Image embedding, 64x64 spatial size, 256 channels - [B, 256, 64, 64]",
     ]
     vision_pos_enc: Annotated[
-        list[torch.Tensor], 
-        "List of positional embeddings at different scales - [B, 256, 256, 256], [B, 256, 128, 128], [B, 256, 64, 64]"
+        list[torch.Tensor],
+        "List of positional embeddings at different scales - [B, 256, 256, 256], [B, 256, 128, 128], [B, 256, 64, 64]",
     ]
     backbone_fpn: Annotated[
         list[torch.Tensor],
-        "List of backbone features at different scales - [B, 256, 256, 256], [B, 256, 128, 128], [B, 256, 64, 64]"
+        "List of backbone features at different scales - [B, 256, 256, 256], [B, 256, 128, 128], [B, 256, 64, 64]",
     ]
 
 
@@ -152,7 +152,7 @@ def main(
                 if isinstance(backbone_out, dict):
                     image_embed: torch.Tensor = backbone_out["vision_features"]
                     # third pos is discarded for compatibility with 2.0
-                    #if size in [CheckpointSizes.TINY, CheckpointSizes.SMALL]:
+                    # if size in [CheckpointSizes.TINY, CheckpointSizes.SMALL]:
                     high_res_feats = None
                     # else:
                     #     high_res_feats = [x for x in backbone_out["backbone_fpn"][:2]]
