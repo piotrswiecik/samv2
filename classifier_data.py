@@ -199,6 +199,7 @@ def main(
     ):
     ann_path, img_path = get_dataset_paths(dataset_root)
     generate_background_class(ann_path, img_path, out_dir)
+    generate_classifier_dataset(ann_path, img_path, out_dir)
 
 
 if __name__ == "__main__":
